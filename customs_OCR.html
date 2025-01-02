@@ -1,687 +1,697 @@
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Challenges in Data Collection - An Experiment in Extracting Time-Series Data from a Series of Tables as Imperfect Scanned Images using Image Processing and OCR Engines</title><style>
-/* cspell:disable-file */
-/* webkit printing magic: print all background colors */
-html {
-	-webkit-print-color-adjust: exact;
-}
-* {
-	box-sizing: border-box;
-	-webkit-print-color-adjust: exact;
-}
-
-html,
-body {
-	margin: 0;
-	padding: 0;
-}
-@media only screen {
-	body {
-		margin: 2em auto;
-		max-width: 900px;
-		color: rgb(55, 53, 47);
-	}
-}
-
-body {
-	line-height: 1.5;
-	white-space: pre-wrap;
-}
-
-a,
-a.visited {
-	color: inherit;
-	text-decoration: underline;
-}
-
-.pdf-relative-link-path {
-	font-size: 80%;
-	color: #444;
-}
-
-h1,
-h2,
-h3 {
-	letter-spacing: -0.01em;
-	line-height: 1.2;
-	font-weight: 600;
-	margin-bottom: 0;
-}
-
-.page-title {
-	font-size: 2.5rem;
-	font-weight: 700;
-	margin-top: 0;
-	margin-bottom: 0.75em;
-}
-
-h1 {
-	font-size: 1.875rem;
-	margin-top: 1.875rem;
-}
-
-h2 {
-	font-size: 1.5rem;
-	margin-top: 1.5rem;
-}
-
-h3 {
-	font-size: 1.25rem;
-	margin-top: 1.25rem;
-}
-
-.source {
-	border: 1px solid #ddd;
-	border-radius: 3px;
-	padding: 1.5em;
-	word-break: break-all;
-}
-
-.callout {
-	border-radius: 3px;
-	padding: 1rem;
-}
-
-figure {
-	margin: 1.25em 0;
-	page-break-inside: avoid;
-}
-
-figcaption {
-	opacity: 0.5;
-	font-size: 85%;
-	margin-top: 0.5em;
-}
-
-mark {
-	background-color: transparent;
-}
-
-.indented {
-	padding-left: 1.5em;
-}
-
-hr {
-	background: transparent;
-	display: block;
-	width: 100%;
-	height: 1px;
-	visibility: visible;
-	border: none;
-	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
-}
-
-img {
-	max-width: 100%;
-}
-
-@media only print {
-	img {
-		max-height: 100vh;
-		object-fit: contain;
-	}
-}
-
-@page {
-	margin: 1in;
-}
-
-.collection-content {
-	font-size: 0.875rem;
-}
-
-.column-list {
-	display: flex;
-	justify-content: space-between;
-}
-
-.column {
-	padding: 0 1em;
-}
-
-.column:first-child {
-	padding-left: 0;
-}
-
-.column:last-child {
-	padding-right: 0;
-}
-
-.table_of_contents-item {
-	display: block;
-	font-size: 0.875rem;
-	line-height: 1.3;
-	padding: 0.125rem;
-}
-
-.table_of_contents-indent-1 {
-	margin-left: 1.5rem;
-}
-
-.table_of_contents-indent-2 {
-	margin-left: 3rem;
-}
-
-.table_of_contents-indent-3 {
-	margin-left: 4.5rem;
-}
-
-.table_of_contents-link {
-	text-decoration: none;
-	opacity: 0.7;
-	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
-}
-
-table,
-th,
-td {
-	border: 1px solid rgba(55, 53, 47, 0.09);
-	border-collapse: collapse;
-}
-
-table {
-	border-left: none;
-	border-right: none;
-}
-
-th,
-td {
-	font-weight: normal;
-	padding: 0.25em 0.5em;
-	line-height: 1.5;
-	min-height: 1.5em;
-	text-align: left;
-}
-
-th {
-	color: rgba(55, 53, 47, 0.6);
-}
-
-ol,
-ul {
-	margin: 0;
-	margin-block-start: 0.6em;
-	margin-block-end: 0.6em;
-}
-
-li > ol:first-child,
-li > ul:first-child {
-	margin-block-start: 0.6em;
-}
-
-ul > li {
-	list-style: disc;
-}
-
-ul.to-do-list {
-	padding-inline-start: 0;
-}
-
-ul.to-do-list > li {
-	list-style: none;
-}
-
-.to-do-children-checked {
-	text-decoration: line-through;
-	opacity: 0.375;
-}
-
-ul.toggle > li {
-	list-style: none;
-}
-
-ul {
-	padding-inline-start: 1.7em;
-}
-
-ul > li {
-	padding-left: 0.1em;
-}
-
-ol {
-	padding-inline-start: 1.6em;
-}
-
-ol > li {
-	padding-left: 0.2em;
-}
-
-.mono ol {
-	padding-inline-start: 2em;
-}
-
-.mono ol > li {
-	text-indent: -0.4em;
-}
-
-.toggle {
-	padding-inline-start: 0em;
-	list-style-type: none;
-}
-
-/* Indent toggle children */
-.toggle > li > details {
-	padding-left: 1.7em;
-}
-
-.toggle > li > details > summary {
-	margin-left: -1.1em;
-}
-
-.selected-value {
-	display: inline-block;
-	padding: 0 0.5em;
-	background: rgba(206, 205, 202, 0.5);
-	border-radius: 3px;
-	margin-right: 0.5em;
-	margin-top: 0.3em;
-	margin-bottom: 0.3em;
-	white-space: nowrap;
-}
-
-.collection-title {
-	display: inline-block;
-	margin-right: 1em;
-}
-
-.page-description {
-	margin-bottom: 2em;
-}
-
-.simple-table {
-	margin-top: 1em;
-	font-size: 0.875rem;
-	empty-cells: show;
-}
-.simple-table td {
-	height: 29px;
-	min-width: 120px;
-}
-
-.simple-table th {
-	height: 29px;
-	min-width: 120px;
-}
-
-.simple-table-header-color {
-	background: rgb(247, 246, 243);
-	color: black;
-}
-.simple-table-header {
-	font-weight: 500;
-}
-
-time {
-	opacity: 0.5;
-}
-
-.icon {
-	display: inline-block;
-	max-width: 1.2em;
-	max-height: 1.2em;
-	text-decoration: none;
-	vertical-align: text-bottom;
-	margin-right: 0.5em;
-}
-
-img.icon {
-	border-radius: 3px;
-}
-
-.user-icon {
-	width: 1.5em;
-	height: 1.5em;
-	border-radius: 100%;
-	margin-right: 0.5rem;
-}
-
-.user-icon-inner {
-	font-size: 0.8em;
-}
-
-.text-icon {
-	border: 1px solid #000;
-	text-align: center;
-}
-
-.page-cover-image {
-	display: block;
-	object-fit: cover;
-	width: 100%;
-	max-height: 30vh;
-}
-
-.page-header-icon {
-	font-size: 3rem;
-	margin-bottom: 1rem;
-}
-
-.page-header-icon-with-cover {
-	margin-top: -0.72em;
-	margin-left: 0.07em;
-}
-
-.page-header-icon img {
-	border-radius: 3px;
-}
-
-.link-to-page {
-	margin: 1em 0;
-	padding: 0;
-	border: none;
-	font-weight: 500;
-}
-
-p > .user {
-	opacity: 0.5;
-}
-
-td > .user,
-td > time {
-	white-space: nowrap;
-}
-
-input[type="checkbox"] {
-	transform: scale(1.5);
-	margin-right: 0.6em;
-	vertical-align: middle;
-}
-
-p {
-	margin-top: 0.5em;
-	margin-bottom: 0.5em;
-}
-
-.image {
-	border: none;
-	margin: 1.5em 0;
-	padding: 0;
-	border-radius: 0;
-	text-align: center;
-}
-
-.code,
-code {
-	background: rgba(135, 131, 120, 0.15);
-	border-radius: 3px;
-	padding: 0.2em 0.4em;
-	border-radius: 3px;
-	font-size: 85%;
-	tab-size: 2;
-}
-
-code {
-	color: #eb5757;
-}
-
-.code {
-	padding: 1.5em 1em;
-}
-
-.code-wrap {
-	white-space: pre-wrap;
-	word-break: break-all;
-}
-
-.code > code {
-	background: none;
-	padding: 0;
-	font-size: 100%;
-	color: inherit;
-}
-
-blockquote {
-	font-size: 1.25em;
-	margin: 1em 0;
-	padding-left: 1em;
-	border-left: 3px solid rgb(55, 53, 47);
-}
-
-.bookmark {
-	text-decoration: none;
-	max-height: 8em;
-	padding: 0;
-	display: flex;
-	width: 100%;
-	align-items: stretch;
-}
-
-.bookmark-title {
-	font-size: 0.85em;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	height: 1.75em;
-	white-space: nowrap;
-}
-
-.bookmark-text {
-	display: flex;
-	flex-direction: column;
-}
-
-.bookmark-info {
-	flex: 4 1 180px;
-	padding: 12px 14px 14px;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-}
-
-.bookmark-image {
-	width: 33%;
-	flex: 1 1 180px;
-	display: block;
-	position: relative;
-	object-fit: cover;
-	border-radius: 1px;
-}
-
-.bookmark-description {
-	color: rgba(55, 53, 47, 0.6);
-	font-size: 0.75em;
-	overflow: hidden;
-	max-height: 4.5em;
-	word-break: break-word;
-}
-
-.bookmark-href {
-	font-size: 0.75em;
-	margin-top: 0.25em;
-}
-
-.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
-.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
-.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
-.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
-.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
-.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
-.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
-.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
-.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
-.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
-.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
-.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
-.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
-.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
-.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
-.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
-.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
-.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
-.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
-.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
-.highlight-default {
-	color: rgba(55, 53, 47, 1);
-}
-.highlight-gray {
-	color: rgba(120, 119, 116, 1);
-	fill: rgba(120, 119, 116, 1);
-}
-.highlight-brown {
-	color: rgba(159, 107, 83, 1);
-	fill: rgba(159, 107, 83, 1);
-}
-.highlight-orange {
-	color: rgba(217, 115, 13, 1);
-	fill: rgba(217, 115, 13, 1);
-}
-.highlight-yellow {
-	color: rgba(203, 145, 47, 1);
-	fill: rgba(203, 145, 47, 1);
-}
-.highlight-teal {
-	color: rgba(68, 131, 97, 1);
-	fill: rgba(68, 131, 97, 1);
-}
-.highlight-blue {
-	color: rgba(51, 126, 169, 1);
-	fill: rgba(51, 126, 169, 1);
-}
-.highlight-purple {
-	color: rgba(144, 101, 176, 1);
-	fill: rgba(144, 101, 176, 1);
-}
-.highlight-pink {
-	color: rgba(193, 76, 138, 1);
-	fill: rgba(193, 76, 138, 1);
-}
-.highlight-red {
-	color: rgba(212, 76, 71, 1);
-	fill: rgba(212, 76, 71, 1);
-}
-.highlight-default_background {
-	color: rgba(55, 53, 47, 1);
-}
-.highlight-gray_background {
-	background: rgba(241, 241, 239, 1);
-}
-.highlight-brown_background {
-	background: rgba(244, 238, 238, 1);
-}
-.highlight-orange_background {
-	background: rgba(251, 236, 221, 1);
-}
-.highlight-yellow_background {
-	background: rgba(251, 243, 219, 1);
-}
-.highlight-teal_background {
-	background: rgba(237, 243, 236, 1);
-}
-.highlight-blue_background {
-	background: rgba(231, 243, 248, 1);
-}
-.highlight-purple_background {
-	background: rgba(244, 240, 247, 0.8);
-}
-.highlight-pink_background {
-	background: rgba(249, 238, 243, 0.8);
-}
-.highlight-red_background {
-	background: rgba(253, 235, 236, 1);
-}
-.block-color-default {
-	color: inherit;
-	fill: inherit;
-}
-.block-color-gray {
-	color: rgba(120, 119, 116, 1);
-	fill: rgba(120, 119, 116, 1);
-}
-.block-color-brown {
-	color: rgba(159, 107, 83, 1);
-	fill: rgba(159, 107, 83, 1);
-}
-.block-color-orange {
-	color: rgba(217, 115, 13, 1);
-	fill: rgba(217, 115, 13, 1);
-}
-.block-color-yellow {
-	color: rgba(203, 145, 47, 1);
-	fill: rgba(203, 145, 47, 1);
-}
-.block-color-teal {
-	color: rgba(68, 131, 97, 1);
-	fill: rgba(68, 131, 97, 1);
-}
-.block-color-blue {
-	color: rgba(51, 126, 169, 1);
-	fill: rgba(51, 126, 169, 1);
-}
-.block-color-purple {
-	color: rgba(144, 101, 176, 1);
-	fill: rgba(144, 101, 176, 1);
-}
-.block-color-pink {
-	color: rgba(193, 76, 138, 1);
-	fill: rgba(193, 76, 138, 1);
-}
-.block-color-red {
-	color: rgba(212, 76, 71, 1);
-	fill: rgba(212, 76, 71, 1);
-}
-.block-color-default_background {
-	color: inherit;
-	fill: inherit;
-}
-.block-color-gray_background {
-	background: rgba(241, 241, 239, 1);
-}
-.block-color-brown_background {
-	background: rgba(244, 238, 238, 1);
-}
-.block-color-orange_background {
-	background: rgba(251, 236, 221, 1);
-}
-.block-color-yellow_background {
-	background: rgba(251, 243, 219, 1);
-}
-.block-color-teal_background {
-	background: rgba(237, 243, 236, 1);
-}
-.block-color-blue_background {
-	background: rgba(231, 243, 248, 1);
-}
-.block-color-purple_background {
-	background: rgba(244, 240, 247, 0.8);
-}
-.block-color-pink_background {
-	background: rgba(249, 238, 243, 0.8);
-}
-.block-color-red_background {
-	background: rgba(253, 235, 236, 1);
-}
-.select-value-color-uiBlue { background-color: rgba(35, 131, 226, .07); }
-.select-value-color-pink { background-color: rgba(245, 224, 233, 1); }
-.select-value-color-purple { background-color: rgba(232, 222, 238, 1); }
-.select-value-color-green { background-color: rgba(219, 237, 219, 1); }
-.select-value-color-gray { background-color: rgba(227, 226, 224, 1); }
-.select-value-color-transparentGray { background-color: rgba(227, 226, 224, 0); }
-.select-value-color-translucentGray { background-color: rgba(0, 0, 0, 0.06); }
-.select-value-color-orange { background-color: rgba(250, 222, 201, 1); }
-.select-value-color-brown { background-color: rgba(238, 224, 218, 1); }
-.select-value-color-red { background-color: rgba(255, 226, 221, 1); }
-.select-value-color-yellow { background-color: rgba(253, 236, 200, 1); }
-.select-value-color-blue { background-color: rgba(211, 229, 239, 1); }
-.select-value-color-pageGlass { background-color: undefined; }
-.select-value-color-washGlass { background-color: undefined; }
-
-.checkbox {
-	display: inline-flex;
-	vertical-align: text-bottom;
-	width: 16;
-	height: 16;
-	background-size: 16px;
-	margin-left: 2px;
-	margin-right: 5px;
-}
-
-.checkbox-on {
-	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
-}
-
-.checkbox-off {
-	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
-}
-	
-</style></head><body><article id="16d5a19f-9cfa-805b-a81f-dc438df24ba1" class="page sans"><header><h1 class="page-title">Challenges in Data Collection - An Experiment in Extracting Time-Series Data from a Series of Tables as Imperfect Scanned Images using Image Processing and OCR Engines</h1><p class="page-description"></p></header><div class="page-body"><h1 id="16d5a19f-9cfa-800d-80ed-e48f5b3505e0" class="">The Requirement and How It Came About</h1><p id="16d5a19f-9cfa-80d8-8485-c958a88d03b8" class="">Recently me and my colleague and friend Venura Pussella (<a href="https://www.linkedin.com/in/venurapussella/">https://www.linkedin.com/in/venurapussella/</a> / <a href="https://medium.com/@venurajithmal">https://medium.com/@venurajithmal</a>) ran into a problem during the development of a machine learning pipeline. It required data collection by performing web scraping on a number of websites. For most websites this was not an issue as the required data was in text format, or in some kind of document binary which contained the data as text. However we ran into one website where the data we needed was in the form of scanned/photographed images.</p><p id="16d5a19f-9cfa-80f8-a634-f6ec5c955f77" class="">To be specific, we needed to extract tabulated text data from an image - an imperfect image of varying scan/photograph quality.</p><p id="16d5a19f-9cfa-809f-8012-fab710b39edd" class=""> </p><h1 id="16d5a19f-9cfa-808d-bc4d-f73b7d231a68" class="">The Easy and Obvious Solution, While Thinking About the What-If? solution</h1><p id="16d5a19f-9cfa-8087-b03c-e08b3f946984" class="">The easiest and most reliable solution was to use Azure Document Intelligence (<a href="https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview?view=doc-intel-4.0.0">https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview?view=doc-intel-4.0.0</a>). This service can be used via a web-based GUI portal (<a href="https://documentintelligence.ai.azure.com/studio">https://documentintelligence.ai.azure.com/studio</a>) but we can use Microsoft’s Python SDK for automated use. Fortunately for us, due to the update frequency and size of the data, we would comfortable fit inside the free-tier of the service.</p><p id="16d5a19f-9cfa-8067-873c-ca2d3007c5c5" class="">But this got me thinking, there are a number of reasons why one might not want to use Azure Document Intelligence. For large use cases the cost might be prohibitive - especially with the layout mode required for the extraction of tabular data (<a href="https://azure.microsoft.com/en-us/pricing/details/ai-document-intelligence/">https://azure.microsoft.com/en-us/pricing/details/ai-document-intelligence/</a> - it can be 6-17x more expensive than regular text extraction). Azure Document Intelligence may be barred from use due to corporate compliance regulations. Maybe your use case is an enthusiast project, and you don’t want to deal with costs at all.</p><h1 id="16d5a19f-9cfa-80f6-a909-e5521581d1c8" class="">What This Blog Has to Offer</h1><p id="16d5a19f-9cfa-8000-a9dd-e8cd0e4c095c" class="">Following the above reasoning, I began exploring alternative solutions to this type of problems. Hopefully this blog may help others find inspiration to find solutions to their unique data extraction problems, just as I did with others’ blogs while researching this problem.</p><p id="16d5a19f-9cfa-8094-b6e6-ce607bc2c0e1" class="">I begin by the specification of the scanned images we had to deal with, so the reader can see how much they can relate to the problem.</p><p id="16d5a19f-9cfa-8042-af79-caaf5d6e8294" class="">I research possible starting points to solving the problems and eventually settled on an OpenCV (<a href="https://opencv.org/">https://opencv.org/</a>) based image processing technique to extract individual cells from the table and pass them a local copy of the Tesseract 5 (<a href="https://tesseract-ocr.github.io/tessdoc/Installation.html">https://tesseract-ocr.github.io/tessdoc/Installation.html</a>) OCR engine. </p><blockquote id="16f5a19f-9cfa-806e-a328-e15455e7a491" class="">Obviously the best solution would be to train a custom model for cell detection, since all the documents are in the same format. Improving the current discussed solution as a personal curiosity, as well as training a custom model are plans for my future free time.</blockquote><p id="16d5a19f-9cfa-8089-9773-d2f611dd38e0" class="">Readers might find the ‘Initial Research’ section useful as an entry point into solving their problems, and also learn about OpenCV’s image processing techniques and with their uses, limitations and how I overcame those limitations.</p><p id="16d5a19f-9cfa-8058-a281-f95cd203babb" class="">The end result is not perfect (performance statistics compared against Azure Document Intelligence are provided at the end of the blog) and I highlight the issues needed to be solved to further improve the detection rate.</p><figure class="block-color-teal callout" style="white-space:pre-wrap;display:flex" id="16d5a19f-9cfa-8062-895c-ca008fef47d8"><div style="font-size:1.5em"><span class="icon">⚠️</span></div><div style="width:100%"><p id="f59c1418-f338-4086-be49-b14a186ddd93" class=""><mark class="highlight-red">Refer the ‘Table and Data Structure’ section to properly understand what I mean by the detection rate. Due to the nature of the data, in this use-case, we don’t need 100% character recognition to extract lines.</mark></p></div></figure><h1 id="16d5a19f-9cfa-809c-bf05-f3aca6d35df4" class="">Specification and Nuances of the Data and Scanned Images</h1><p id="16d5a19f-9cfa-80e8-8cdb-e6a5160720b9" class="">Before diving into the Initial Research section, a proper understanding of the specifications and nuances is needed. This section may also help the reader see how relatable this problem is to their own.</p><ul id="16d5a19f-9cfa-8051-8711-e02568a51c75" class="toggle"><li><details open=""><summary>Below are a selection of the scanned images:</summary><figure id="16d5a19f-9cfa-801d-9289-dc794fe5b817" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image.png"><img style="width:240px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image.png"/></a></figure><figure id="16d5a19f-9cfa-8071-a709-dfaabee14376" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%201.png"><img style="width:240px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%201.png"/></a></figure><figure id="16f5a19f-9cfa-80b0-a576-ea051cb16cb4" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%202.png"><img style="width:240px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%202.png"/></a></figure><figure id="16f5a19f-9cfa-80e9-84fc-fff125651256" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%203.png"><img style="width:240px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%203.png"/></a></figure></details></li></ul><h2 id="16d5a19f-9cfa-804b-b734-c07422961971" class="">Image Quality</h2><p id="16d5a19f-9cfa-8088-b42d-ef215fc2af67" class="">A big problem with scanned/photographed tables when compared to images pulled directly from the original document, is that lines that seem straight are not straight. The image may have been photographed at an angle, the page maybe slightly crumpled or folded, and the physical scanner may have defects. </p><p id="16d5a19f-9cfa-8049-8d12-d39a16696164" class="">The pages may also be noisy and have artifacts from the scanner/camera. As seen in the above selection of images, some also have pen marks (such as ticks).</p><p id="16d5a19f-9cfa-80fd-aff5-dcc848fc32a0" class="">Image processing will be discussed later in the article, but this foreshadowed the following fact:</p><blockquote id="16d5a19f-9cfa-80c4-bffe-e80bca4c64b0" class="">Performing image processing on these ‘real-world’ images is much harder than the ‘perfect example’ images that one may use to practice and observe image processing techniques.</blockquote><h2 id="16d5a19f-9cfa-804d-83f1-ccfa7ac3d885" class="">Table and Data Structure</h2><p id="16d5a19f-9cfa-805b-b1c3-e3c8ce98ee18" class="">The table has 6 columns. Each image contains around 52 countries (on some weeks, some countries may be dropped, on others they may re-appear). Our data extraction goal was to map the country to the exchange rate. This means that we technically don’t need to accurately read most of the columns. We can use columns 2 - 5 inclusive (’Country’, ‘Country Code’, ‘Currency’, ‘Currency Code’) to somehow identify a country (which is similar to a primary key) (the only exception is China, which has a 2 currencies, but I digress). Once a country row is correctly identified, the crucial data is in the final column - the exchange rate. The first column is useless.</p><p id="16d5a19f-9cfa-8036-83ee-e838d67dffb5" class="">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<meta property="og:image" content="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2019.png"/>
+		<title>Towards OCR Enhanced Pipeline Creation - An Experiment in Extracting Time-Series Data from a Series of Tables as Imperfect Scanned Images using Image Processing and OCR Engines</title>
+		<style>
+			/* cspell:disable-file */
+			/* webkit printing magic: print all background colors */
+			html {
+				-webkit-print-color-adjust: exact;
+			}
+			* {
+				box-sizing: border-box;
+				-webkit-print-color-adjust: exact;
+			}
+
+			html,
+			body {
+				margin: 0;
+				padding: 0;
+			}
+			@media only screen {
+				body {
+					margin: 2em auto;
+					max-width: 900px;
+					color: rgb(55, 53, 47);
+				}
+			}
+
+			body {
+				line-height: 1.5;
+				white-space: pre-wrap;
+			}
+
+			a,
+			a.visited {
+				color: inherit;
+				text-decoration: underline;
+			}
+
+			.pdf-relative-link-path {
+				font-size: 80%;
+				color: #444;
+			}
+
+			h1,
+			h2,
+			h3 {
+				letter-spacing: -0.01em;
+				line-height: 1.2;
+				font-weight: 600;
+				margin-bottom: 0;
+			}
+
+			.page-title {
+				font-size: 2.5rem;
+				font-weight: 700;
+				margin-top: 0;
+				margin-bottom: 0.75em;
+			}
+
+			h1 {
+				font-size: 1.875rem;
+				margin-top: 1.875rem;
+			}
+
+			h2 {
+				font-size: 1.5rem;
+				margin-top: 1.5rem;
+			}
+
+			h3 {
+				font-size: 1.25rem;
+				margin-top: 1.25rem;
+			}
+
+			.source {
+				border: 1px solid #ddd;
+				border-radius: 3px;
+				padding: 1.5em;
+				word-break: break-all;
+			}
+
+			.callout {
+				border-radius: 3px;
+				padding: 1rem;
+			}
+
+			figure {
+				margin: 1.25em 0;
+				page-break-inside: avoid;
+			}
+
+			figcaption {
+				opacity: 0.5;
+				font-size: 85%;
+				margin-top: 0.5em;
+			}
+
+			mark {
+				background-color: transparent;
+			}
+
+			.indented {
+				padding-left: 1.5em;
+			}
+
+			hr {
+				background: transparent;
+				display: block;
+				width: 100%;
+				height: 1px;
+				visibility: visible;
+				border: none;
+				border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+			}
+
+			img {
+				max-width: 100%;
+			}
+
+			@media only print {
+				img {
+					max-height: 100vh;
+					object-fit: contain;
+				}
+			}
+
+			@page {
+				margin: 1in;
+			}
+
+			.collection-content {
+				font-size: 0.875rem;
+			}
+
+			.column-list {
+				display: flex;
+				justify-content: space-between;
+			}
+
+			.column {
+				padding: 0 1em;
+			}
+
+			.column:first-child {
+				padding-left: 0;
+			}
+
+			.column:last-child {
+				padding-right: 0;
+			}
+
+			.table_of_contents-item {
+				display: block;
+				font-size: 0.875rem;
+				line-height: 1.3;
+				padding: 0.125rem;
+			}
+
+			.table_of_contents-indent-1 {
+				margin-left: 1.5rem;
+			}
+
+			.table_of_contents-indent-2 {
+				margin-left: 3rem;
+			}
+
+			.table_of_contents-indent-3 {
+				margin-left: 4.5rem;
+			}
+
+			.table_of_contents-link {
+				text-decoration: none;
+				opacity: 0.7;
+				border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+			}
+
+			table,
+			th,
+			td {
+				border: 1px solid rgba(55, 53, 47, 0.09);
+				border-collapse: collapse;
+			}
+
+			table {
+				border-left: none;
+				border-right: none;
+			}
+
+			th,
+			td {
+				font-weight: normal;
+				padding: 0.25em 0.5em;
+				line-height: 1.5;
+				min-height: 1.5em;
+				text-align: left;
+			}
+
+			th {
+				color: rgba(55, 53, 47, 0.6);
+			}
+
+			ol,
+			ul {
+				margin: 0;
+				margin-block-start: 0.6em;
+				margin-block-end: 0.6em;
+			}
+
+			li > ol:first-child,
+			li > ul:first-child {
+				margin-block-start: 0.6em;
+			}
+
+			ul > li {
+				list-style: disc;
+			}
+
+			ul.to-do-list {
+				padding-inline-start: 0;
+			}
+
+			ul.to-do-list > li {
+				list-style: none;
+			}
+
+			.to-do-children-checked {
+				text-decoration: line-through;
+				opacity: 0.375;
+			}
+
+			ul.toggle > li {
+				list-style: none;
+			}
+
+			ul {
+				padding-inline-start: 1.7em;
+			}
+
+			ul > li {
+				padding-left: 0.1em;
+			}
+
+			ol {
+				padding-inline-start: 1.6em;
+			}
+
+			ol > li {
+				padding-left: 0.2em;
+			}
+
+			.mono ol {
+				padding-inline-start: 2em;
+			}
+
+			.mono ol > li {
+				text-indent: -0.4em;
+			}
+
+			.toggle {
+				padding-inline-start: 0em;
+				list-style-type: none;
+			}
+
+			/* Indent toggle children */
+			.toggle > li > details {
+				padding-left: 1.7em;
+			}
+
+			.toggle > li > details > summary {
+				margin-left: -1.1em;
+			}
+
+			.selected-value {
+				display: inline-block;
+				padding: 0 0.5em;
+				background: rgba(206, 205, 202, 0.5);
+				border-radius: 3px;
+				margin-right: 0.5em;
+				margin-top: 0.3em;
+				margin-bottom: 0.3em;
+				white-space: nowrap;
+			}
+
+			.collection-title {
+				display: inline-block;
+				margin-right: 1em;
+			}
+
+			.page-description {
+				margin-bottom: 2em;
+			}
+
+			.simple-table {
+				margin-top: 1em;
+				font-size: 0.875rem;
+				empty-cells: show;
+			}
+			.simple-table td {
+				height: 29px;
+				min-width: 120px;
+			}
+
+			.simple-table th {
+				height: 29px;
+				min-width: 120px;
+			}
+
+			.simple-table-header-color {
+				background: rgb(247, 246, 243);
+				color: black;
+			}
+			.simple-table-header {
+				font-weight: 500;
+			}
+
+			time {
+				opacity: 0.5;
+			}
+
+			.icon {
+				display: inline-block;
+				max-width: 1.2em;
+				max-height: 1.2em;
+				text-decoration: none;
+				vertical-align: text-bottom;
+				margin-right: 0.5em;
+			}
+
+			img.icon {
+				border-radius: 3px;
+			}
+
+			.user-icon {
+				width: 1.5em;
+				height: 1.5em;
+				border-radius: 100%;
+				margin-right: 0.5rem;
+			}
+
+			.user-icon-inner {
+				font-size: 0.8em;
+			}
+
+			.text-icon {
+				border: 1px solid #000;
+				text-align: center;
+			}
+
+			.page-cover-image {
+				display: block;
+				object-fit: cover;
+				width: 100%;
+				max-height: 30vh;
+			}
+
+			.page-header-icon {
+				font-size: 3rem;
+				margin-bottom: 1rem;
+			}
+
+			.page-header-icon-with-cover {
+				margin-top: -0.72em;
+				margin-left: 0.07em;
+			}
+
+			.page-header-icon img {
+				border-radius: 3px;
+			}
+
+			.link-to-page {
+				margin: 1em 0;
+				padding: 0;
+				border: none;
+				font-weight: 500;
+			}
+
+			p > .user {
+				opacity: 0.5;
+			}
+
+			td > .user,
+			td > time {
+				white-space: nowrap;
+			}
+
+			input[type="checkbox"] {
+				transform: scale(1.5);
+				margin-right: 0.6em;
+				vertical-align: middle;
+			}
+
+			p {
+				margin-top: 0.5em;
+				margin-bottom: 0.5em;
+			}
+
+			.image {
+				border: none;
+				margin: 1.5em 0;
+				padding: 0;
+				border-radius: 0;
+				text-align: center;
+			}
+
+			.code,
+			code {
+				background: rgba(135, 131, 120, 0.15);
+				border-radius: 3px;
+				padding: 0.2em 0.4em;
+				border-radius: 3px;
+				font-size: 85%;
+				tab-size: 2;
+			}
+
+			code {
+				color: #eb5757;
+			}
+
+			.code {
+				padding: 1.5em 1em;
+			}
+
+			.code-wrap {
+				white-space: pre-wrap;
+				word-break: break-all;
+			}
+
+			.code > code {
+				background: none;
+				padding: 0;
+				font-size: 100%;
+				color: inherit;
+			}
+
+			blockquote {
+				font-size: 1.25em;
+				margin: 1em 0;
+				padding-left: 1em;
+				border-left: 3px solid rgb(55, 53, 47);
+			}
+
+			.bookmark {
+				text-decoration: none;
+				max-height: 8em;
+				padding: 0;
+				display: flex;
+				width: 100%;
+				align-items: stretch;
+			}
+
+			.bookmark-title {
+				font-size: 0.85em;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				height: 1.75em;
+				white-space: nowrap;
+			}
+
+			.bookmark-text {
+				display: flex;
+				flex-direction: column;
+			}
+
+			.bookmark-info {
+				flex: 4 1 180px;
+				padding: 12px 14px 14px;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+			}
+
+			.bookmark-image {
+				width: 33%;
+				flex: 1 1 180px;
+				display: block;
+				position: relative;
+				object-fit: cover;
+				border-radius: 1px;
+			}
+
+			.bookmark-description {
+				color: rgba(55, 53, 47, 0.6);
+				font-size: 0.75em;
+				overflow: hidden;
+				max-height: 4.5em;
+				word-break: break-word;
+			}
+
+			.bookmark-href {
+				font-size: 0.75em;
+				margin-top: 0.25em;
+			}
+
+			.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+			.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+			.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+			.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+			.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+			.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+			.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+			.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+			.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+			.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+			.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+			.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+			.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+			.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+			.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+			.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+			.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+			.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+			.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+			.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+			.highlight-default {
+				color: rgba(55, 53, 47, 1);
+			}
+			.highlight-gray {
+				color: rgba(120, 119, 116, 1);
+				fill: rgba(120, 119, 116, 1);
+			}
+			.highlight-brown {
+				color: rgba(159, 107, 83, 1);
+				fill: rgba(159, 107, 83, 1);
+			}
+			.highlight-orange {
+				color: rgba(217, 115, 13, 1);
+				fill: rgba(217, 115, 13, 1);
+			}
+			.highlight-yellow {
+				color: rgba(203, 145, 47, 1);
+				fill: rgba(203, 145, 47, 1);
+			}
+			.highlight-teal {
+				color: rgba(68, 131, 97, 1);
+				fill: rgba(68, 131, 97, 1);
+			}
+			.highlight-blue {
+				color: rgba(51, 126, 169, 1);
+				fill: rgba(51, 126, 169, 1);
+			}
+			.highlight-purple {
+				color: rgba(144, 101, 176, 1);
+				fill: rgba(144, 101, 176, 1);
+			}
+			.highlight-pink {
+				color: rgba(193, 76, 138, 1);
+				fill: rgba(193, 76, 138, 1);
+			}
+			.highlight-red {
+				color: rgba(212, 76, 71, 1);
+				fill: rgba(212, 76, 71, 1);
+			}
+			.highlight-default_background {
+				color: rgba(55, 53, 47, 1);
+			}
+			.highlight-gray_background {
+				background: rgba(241, 241, 239, 1);
+			}
+			.highlight-brown_background {
+				background: rgba(244, 238, 238, 1);
+			}
+			.highlight-orange_background {
+				background: rgba(251, 236, 221, 1);
+			}
+			.highlight-yellow_background {
+				background: rgba(251, 243, 219, 1);
+			}
+			.highlight-teal_background {
+				background: rgba(237, 243, 236, 1);
+			}
+			.highlight-blue_background {
+				background: rgba(231, 243, 248, 1);
+			}
+			.highlight-purple_background {
+				background: rgba(244, 240, 247, 0.8);
+			}
+			.highlight-pink_background {
+				background: rgba(249, 238, 243, 0.8);
+			}
+			.highlight-red_background {
+				background: rgba(253, 235, 236, 1);
+			}
+			.block-color-default {
+				color: inherit;
+				fill: inherit;
+			}
+			.block-color-gray {
+				color: rgba(120, 119, 116, 1);
+				fill: rgba(120, 119, 116, 1);
+			}
+			.block-color-brown {
+				color: rgba(159, 107, 83, 1);
+				fill: rgba(159, 107, 83, 1);
+			}
+			.block-color-orange {
+				color: rgba(217, 115, 13, 1);
+				fill: rgba(217, 115, 13, 1);
+			}
+			.block-color-yellow {
+				color: rgba(203, 145, 47, 1);
+				fill: rgba(203, 145, 47, 1);
+			}
+			.block-color-teal {
+				color: rgba(68, 131, 97, 1);
+				fill: rgba(68, 131, 97, 1);
+			}
+			.block-color-blue {
+				color: rgba(51, 126, 169, 1);
+				fill: rgba(51, 126, 169, 1);
+			}
+			.block-color-purple {
+				color: rgba(144, 101, 176, 1);
+				fill: rgba(144, 101, 176, 1);
+			}
+			.block-color-pink {
+				color: rgba(193, 76, 138, 1);
+				fill: rgba(193, 76, 138, 1);
+			}
+			.block-color-red {
+				color: rgba(212, 76, 71, 1);
+				fill: rgba(212, 76, 71, 1);
+			}
+			.block-color-default_background {
+				color: inherit;
+				fill: inherit;
+			}
+			.block-color-gray_background {
+				background: rgba(241, 241, 239, 1);
+			}
+			.block-color-brown_background {
+				background: rgba(244, 238, 238, 1);
+			}
+			.block-color-orange_background {
+				background: rgba(251, 236, 221, 1);
+			}
+			.block-color-yellow_background {
+				background: rgba(251, 243, 219, 1);
+			}
+			.block-color-teal_background {
+				background: rgba(237, 243, 236, 1);
+			}
+			.block-color-blue_background {
+				background: rgba(231, 243, 248, 1);
+			}
+			.block-color-purple_background {
+				background: rgba(244, 240, 247, 0.8);
+			}
+			.block-color-pink_background {
+				background: rgba(249, 238, 243, 0.8);
+			}
+			.block-color-red_background {
+				background: rgba(253, 235, 236, 1);
+			}
+			.select-value-color-uiBlue { background-color: rgba(35, 131, 226, .07); }
+			.select-value-color-pink { background-color: rgba(245, 224, 233, 1); }
+			.select-value-color-purple { background-color: rgba(232, 222, 238, 1); }
+			.select-value-color-green { background-color: rgba(219, 237, 219, 1); }
+			.select-value-color-gray { background-color: rgba(227, 226, 224, 1); }
+			.select-value-color-transparentGray { background-color: rgba(227, 226, 224, 0); }
+			.select-value-color-translucentGray { background-color: rgba(0, 0, 0, 0.06); }
+			.select-value-color-orange { background-color: rgba(250, 222, 201, 1); }
+			.select-value-color-brown { background-color: rgba(238, 224, 218, 1); }
+			.select-value-color-red { background-color: rgba(255, 226, 221, 1); }
+			.select-value-color-yellow { background-color: rgba(253, 236, 200, 1); }
+			.select-value-color-blue { background-color: rgba(211, 229, 239, 1); }
+			.select-value-color-pageGlass { background-color: undefined; }
+			.select-value-color-washGlass { background-color: undefined; }
+
+			.checkbox {
+				display: inline-flex;
+				vertical-align: text-bottom;
+				width: 16;
+				height: 16;
+				background-size: 16px;
+				margin-left: 2px;
+				margin-right: 5px;
+			}
+
+			.checkbox-on {
+				background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+			}
+
+			.checkbox-off {
+				background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+			}
+				
+		</style>
+	</head>
+	<body>
+		<article id="16d5a19f-9cfa-805b-a81f-dc438df24ba1" class="page sans">
+			<header><h1 class="page-title">Towards OCR Enhanced Pipeline Creation - An Experiment in Extracting Time-Series Data from a Series of Tables as Imperfect Scanned Images using Image Processing and OCR Engines</h1><p class="page-description"></p></header>
+			<div class="page-body"><h1 id="16d5a19f-9cfa-800d-80ed-e48f5b3505e0" class="">The Requirement and How It Came About</h1><p id="16d5a19f-9cfa-80d8-8485-c958a88d03b8" class="">Recently me and my colleague and friend Venura Pussella (<a href="https://www.linkedin.com/in/venurapussella/">https://www.linkedin.com/in/venurapussella/</a> / <a href="https://medium.com/@venurajithmal">https://medium.com/@venurajithmal</a>) ran into a problem during the development of a machine learning pipeline. It required data collection by performing web scraping on a number of websites. For most websites this was not an issue as the required data was in text format, or in some kind of document binary which contained the data as text. However we ran into one website where the data we needed was in the form of scanned/photographed images.</p><p id="16d5a19f-9cfa-80f8-a634-f6ec5c955f77" class="">To be specific, we needed to extract tabulated text data from an image - an imperfect image of varying scan/photograph quality.</p><p id="16d5a19f-9cfa-809f-8012-fab710b39edd" class=""> </p><h1 id="16d5a19f-9cfa-808d-bc4d-f73b7d231a68" class="">The Easy and Obvious Solution, While Thinking About the What-If? solution</h1><p id="16d5a19f-9cfa-8087-b03c-e08b3f946984" class="">The easiest and most reliable solution was to use Azure Document Intelligence (<a href="https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview?view=doc-intel-4.0.0">https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview?view=doc-intel-4.0.0</a>). This service can be used via a web-based GUI portal (<a href="https://documentintelligence.ai.azure.com/studio">https://documentintelligence.ai.azure.com/studio</a>) but we can use Microsoft’s Python SDK for automated use. Fortunately for us, due to the update frequency and size of the data, we would comfortable fit inside the free-tier of the service.</p><p id="16d5a19f-9cfa-8067-873c-ca2d3007c5c5" class="">But this got me thinking, there are a number of reasons why one might not want to use Azure Document Intelligence. For large use cases the cost might be prohibitive - especially with the layout mode required for the extraction of tabular data (<a href="https://azure.microsoft.com/en-us/pricing/details/ai-document-intelligence/">https://azure.microsoft.com/en-us/pricing/details/ai-document-intelligence/</a> - it can be 6-17x more expensive than regular text extraction). Azure Document Intelligence may be barred from use due to corporate compliance regulations. Maybe your use case is an enthusiast project, and you don’t want to deal with costs at all.</p><h1 id="16d5a19f-9cfa-80f6-a909-e5521581d1c8" class="">What This Blog Has to Offer</h1><p id="16d5a19f-9cfa-8000-a9dd-e8cd0e4c095c" class="">Following the above reasoning, I began exploring alternative solutions to this type of problems. Hopefully this blog may help others find inspiration to find solutions to their unique data extraction problems, just as I did with others’ blogs while researching this problem.</p><p id="16d5a19f-9cfa-8094-b6e6-ce607bc2c0e1" class="">I begin by the specification of the scanned images we had to deal with, so the reader can see how much they can relate to the problem.</p><p id="16d5a19f-9cfa-8042-af79-caaf5d6e8294" class="">I research possible starting points to solving the problems and eventually settled on an OpenCV (<a href="https://opencv.org/">https://opencv.org/</a>) based image processing technique to extract individual cells from the table and pass them a local copy of the Tesseract 5 (<a href="https://tesseract-ocr.github.io/tessdoc/Installation.html">https://tesseract-ocr.github.io/tessdoc/Installation.html</a>) OCR engine. </p><blockquote id="16f5a19f-9cfa-806e-a328-e15455e7a491" class="">Obviously the best solution would be to train a custom model for cell detection, since all the documents are in the same format. Improving the current discussed solution as a personal curiosity, as well as training a custom model are plans for my future free time.</blockquote><p id="16d5a19f-9cfa-8089-9773-d2f611dd38e0" class="">Readers might find the ‘Initial Research’ section useful as an entry point into solving their problems, and also learn about OpenCV’s image processing techniques and with their uses, limitations and how I overcame those limitations.</p><p id="16d5a19f-9cfa-8058-a281-f95cd203babb" class="">The end result is not perfect (performance statistics compared against Azure Document Intelligence are provided at the end of the blog) and I highlight the issues needed to be solved to further improve the detection rate.</p><figure class="block-color-teal callout" style="white-space:pre-wrap;display:flex" id="16d5a19f-9cfa-8062-895c-ca008fef47d8"><div style="font-size:1.5em"><span class="icon">⚠️</span></div><div style="width:100%"><p id="f59c1418-f338-4086-be49-b14a186ddd93" class=""><mark class="highlight-red">Refer the ‘Table and Data Structure’ section to properly understand what I mean by the detection rate. Due to the nature of the data, in this use-case, we don’t need 100% character recognition to extract lines.</mark></p></div></figure><h1 id="16d5a19f-9cfa-809c-bf05-f3aca6d35df4" class="">Specification and Nuances of the Data and Scanned Images</h1><p id="16d5a19f-9cfa-80e8-8cdb-e6a5160720b9" class="">Before diving into the Initial Research section, a proper understanding of the specifications and nuances is needed. This section may also help the reader see how relatable this problem is to their own.</p><ul id="16d5a19f-9cfa-8051-8711-e02568a51c75" class="toggle"><li><details open=""><summary>Below are a selection of the scanned images:</summary><figure id="16d5a19f-9cfa-801d-9289-dc794fe5b817" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image.png"><img style="width:240px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image.png"/></a></figure><figure id="16d5a19f-9cfa-8071-a709-dfaabee14376" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%201.png"><img style="width:240px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%201.png"/></a></figure><figure id="16f5a19f-9cfa-80b0-a576-ea051cb16cb4" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%202.png"><img style="width:240px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%202.png"/></a></figure><figure id="16f5a19f-9cfa-80e9-84fc-fff125651256" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%203.png"><img style="width:240px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%203.png"/></a></figure></details></li></ul><h2 id="16d5a19f-9cfa-804b-b734-c07422961971" class="">Image Quality</h2><p id="16d5a19f-9cfa-8088-b42d-ef215fc2af67" class="">A big problem with scanned/photographed tables when compared to images pulled directly from the original document, is that lines that seem straight are not straight. The image may have been photographed at an angle, the page maybe slightly crumpled or folded, and the physical scanner may have defects. </p><p id="16d5a19f-9cfa-8049-8d12-d39a16696164" class="">The pages may also be noisy and have artifacts from the scanner/camera. As seen in the above selection of images, some also have pen marks (such as ticks).</p><p id="16d5a19f-9cfa-80fd-aff5-dcc848fc32a0" class="">Image processing will be discussed later in the article, but this foreshadowed the following fact:</p><blockquote id="16d5a19f-9cfa-80c4-bffe-e80bca4c64b0" class="">Performing image processing on these ‘real-world’ images is much harder than the ‘perfect example’ images that one may use to practice and observe image processing techniques.</blockquote><h2 id="16d5a19f-9cfa-804d-83f1-ccfa7ac3d885" class="">Table and Data Structure</h2><p id="16d5a19f-9cfa-805b-b1c3-e3c8ce98ee18" class="">The table has 6 columns. Each image contains around 52 countries (on some weeks, some countries may be dropped, on others they may re-appear). Our data extraction goal was to map the country to the exchange rate. This means that we technically don’t need to accurately read most of the columns. We can use columns 2 - 5 inclusive (’Country’, ‘Country Code’, ‘Currency’, ‘Currency Code’) to somehow identify a country (which is similar to a primary key) (the only exception is China, which has a 2 currencies, but I digress). Once a country row is correctly identified, the crucial data is in the final column - the exchange rate. The first column is useless.</p><p id="16d5a19f-9cfa-8036-83ee-e838d67dffb5" class="">
 </p><h1 id="16d5a19f-9cfa-80e2-9be6-c25701b042f0" class="">Initial Research</h1><p id="16d5a19f-9cfa-80c9-a991-e9f6d6b0e5b8" class="">The initial research includes solutions that use:</p><ul id="16d5a19f-9cfa-80e2-99d7-fd92a1632ffc" class="bulleted-list"><li style="list-style-type:disc">Some sort of ‘cell/row’ extraction process (using either image processing, a neural network or a combination of the two) that needs to be combined with an OCR engine.</li></ul><ul id="16d5a19f-9cfa-8034-b557-fb847079a85d" class="bulleted-list"><li style="list-style-type:disc">An OCR engine that deals with the table directly (so this would probably use a neural network).</li></ul><h2 id="7c6560e7-6500-49ad-990a-2b71847596fe" class="">Possible Solutions or Sources of Inspiration</h2><ul id="16d5a19f-9cfa-80b9-8e5c-c53bf95d57dd" class="toggle"><li><details open=""><summary>Img2Table (<a href="https://github.com/xavctn/img2table">https://github.com/xavctn/img2table</a>)</summary><p id="16d5a19f-9cfa-80e5-832a-f1ad61dbe9fe" class="">As of the time of writing this blog, this is a maintained library for extracting data from table images using OpenCV (<a href="https://opencv.org/">https://opencv.org/</a>) based image processing techniques instead of neural network based techniques. It provides interfaces to OCR engines (including Tesseract). </p><p id="16d5a19f-9cfa-803b-af8d-d0dfb8a14f5b" class="">While I suspect this would work very well with images of tables taken directly digitally from original documents, it struggled with the scanned table images.</p><figure id="16d5a19f-9cfa-803f-8d78-f6c47e8144ec" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%204.png"><img style="width:336px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%204.png"/></a></figure><p id="16d5a19f-9cfa-804a-8379-cdb9e8e389a3" class="">This did not give a good result, even with adjusting the OCR object settings and confidence settings.</p></details></li></ul><ul id="16d5a19f-9cfa-8006-a817-f6ee48646ace" class="toggle"><li><details open=""><summary>Using Tesseract directly on the entire table image (<a href="https://tesseract-ocr.github.io/tessdoc/Installation.html">https://tesseract-ocr.github.io/tessdoc/Installation.html</a>)</summary><p id="16d5a19f-9cfa-80db-94f8-d4d72fb9f365" class="">While Tesseract 5 does its own image processing before performing OCR (and has various modes (PSMs) to change its processing for image types of your choosing - <a href="https://github.com/tesseract-ocr/tesseract/blob/main/doc/tesseract.1.asc#options">https://github.com/tesseract-ocr/tesseract/blob/main/doc/tesseract.1.asc#options</a> it really is not built to directly read a table. (Another useful link - <a href="https://tesseract-ocr.github.io/tessdoc/ImproveQuality.html">https://tesseract-ocr.github.io/tessdoc/ImproveQuality.html</a>). </p><figure id="16d5a19f-9cfa-801c-a363-ec9c8f399489" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%205.png"><img style="width:679.984375px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%205.png"/></a></figure><p id="16d5a19f-9cfa-80a7-a9e5-ddf27c564aad" class="">Even with techniques like heavy use of Regex, it would be tough to make use of this output.</p><h3 id="16d5a19f-9cfa-8065-b0b6-c18848caf70b" class="">Digression - Tesseract on Gridless Tables</h3><p id="16d5a19f-9cfa-808e-826a-eaca6178b1ed" class="">While I have not done extensive testing, tesseract may work at a satisfactory level on gridless, well-spaced tables. I used this through Layout Parser (see below under the ‘Possible Solutions or Sources of Inspiration’ topic) on the example table given in this notebook (<a href="https://github.com/Layout-Parser/layout-parser/blob/main/examples/OCR%20Tables%20and%20Parse%20the%20Output.ipynb">https://github.com/Layout-Parser/layout-parser/blob/main/examples/OCR%20Tables%20and%20Parse%20the%20Output.ipynb</a>) with the following result (left - detected text, right - table image)</p><figure id="16d5a19f-9cfa-80ab-878c-d92033fd61dc" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%206.png"><img style="width:679.984375px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%206.png"/></a></figure><p id="16d5a19f-9cfa-8016-8956-f85d92514292" class="">
 </p></details></li></ul><ul id="16d5a19f-9cfa-8062-80f9-f29f7545e7fc" class="toggle"><li><details open=""><summary>Microsoft Table Transformer (DETR Detectron Transformer) (<a href="https://github.com/NielsRogge/Transformers-Tutorials/blob/master/Table%20Transformer/README.md">https://github.com/NielsRogge/Transformers-Tutorials/blob/master/Table%20Transformer/README.md</a>)</summary><figure id="16d5a19f-9cfa-80c4-a22a-f5df0e1e18c0" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%207.png"><img style="width:432px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%207.png"/></a></figure><p id="16d5a19f-9cfa-8035-9d0e-e8ff4cf2ac3c" class="">Out of the box, this model handles columns quite well, however struggles with row detection (multiple false positives consisting of overlapping rows, and false negatives).</p></details></li></ul><ul id="16d5a19f-9cfa-8040-81bf-e63c511421f4" class="toggle"><li><details open=""><summary>Layout Parser (<a href="https://github.com/Layout-Parser/layout-parser">https://github.com/Layout-Parser/layout-parser</a>) - table boundary detection</summary><p id="16d5a19f-9cfa-80bb-b154-d93785573f3f" class="">Layout Parser is a library ‘providing a unified toolkit for image analysis’. </p><p id="16d5a19f-9cfa-809c-adf3-d5985c9bbe94" class="">It provides an easy-to-use interface to use deep-learning models to identify tables in your documents. </p><p id="16d5a19f-9cfa-80b2-af57-ca870d28f705" class="">
 </p></details></li></ul><ul id="16d5a19f-9cfa-8089-9680-ef220b628b65" class="toggle"><li><details open=""><summary>Ultralytics YOLOv8 - table boundary detection (<a href="https://huggingface.co/ultralyticsplus/yolov8s">https://huggingface.co/ultralyticsplus/yolov8s</a>)</summary><p id="16d5a19f-9cfa-80a7-ba4b-c6f5bd4f589d" class="">I was helped by this blog by Rajat Roy (<a href="https://iamrajatroy.medium.com/document-intelligence-series-part-1-table-detection-with-yolo-1fa0a198fd7">https://iamrajatroy.medium.com/document-intelligence-series-part-1-table-detection-with-yolo-1fa0a198fd7</a>).</p><p id="16d5a19f-9cfa-809f-a129-c077ce01591a" class="">It does a good job at identifying the table boundary - albeit with one limitation. The function returns a perfect rectangle, which could pose a challenge if the table image was scanned/photographed at a significant angle.</p><figure id="16d5a19f-9cfa-80c4-8b54-e5e3d25c027e" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%208.png"><img style="width:336px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%208.png"/></a></figure><figure id="16d5a19f-9cfa-8080-b884-f80b912a6cb1" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%209.png"><img style="width:336px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%209.png"/></a></figure></details></li></ul><p id="16d5a19f-9cfa-80cf-9c99-e4cf764f61ec" class="">
@@ -695,7 +705,9 @@ for contour in all_contours_sorted:
     x,y,w,h = cv2.boundingRect(contour)
     area_of_boundingRect = w*h
     if area_of_boundingRect/base_image_area &lt; 0.00086: break
-    larger_contours.append(contour)</code></pre><p id="16d5a19f-9cfa-80e5-834c-e3468bdbb2d0" class="">Below is the image with just the larger contours printed. Contours around most cells have been identified.</p><figure id="16d5a19f-9cfa-807e-b2ef-c9d0558b18e3" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2014.png"><img style="width:528px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2014.png"/></a></figure></li></ol><ol type="1" id="16d5a19f-9cfa-806e-8f08-e5fb14be9ae1" class="numbered-list" start="5"><li><strong>Create a mask from the points comprising the larger contours</strong><p id="16d5a19f-9cfa-806d-980c-fe48b9fceec0" class="">Dealing with the mask for the next step is easier, as we don’t have to deal with image noise.</p><figure id="16d5a19f-9cfa-80dc-b3e3-f824d7f5fa6e" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2015.png"><img style="width:528px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2015.png"/></a></figure></li></ol><ol type="1" id="16d5a19f-9cfa-80e5-b065-eec56afe37d3" class="numbered-list" start="6"><li><strong>Find the outer-most contour points from the mask</strong><p id="16d5a19f-9cfa-8036-9a71-e30358d230d3" class="">This is made easy by the ‘cv2.RETR_EXTERNAL’ argument. This is because the cv2.findContours method keeps track of contours as a hierarchy as much as possible (understanding that smaller contours can be inside larger contours).</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="16d5a19f-9cfa-8007-8484-faaeb403b8c8" class="code"><code class="language-Python">ext_contours,hierachy = cv2.findContours(larger_contours_image.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)</code></pre><figure id="16d5a19f-9cfa-80ab-b8c9-ef2d21207f94" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2016.png"><img style="width:432px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2016.png"/></a></figure></li></ol><ol type="1" id="16d5a19f-9cfa-8029-b715-d614f3e002fc" class="numbered-list" start="7"><li><strong>Find the 4 corners of the table</strong><p id="16d5a19f-9cfa-80c5-9020-d24a1caa5808" class="">As seen in the above image, this is fairly straightforward.</p></li></ol><ol type="1" id="16d5a19f-9cfa-800a-8409-ce31574e2784" class="numbered-list" start="8"><li><strong>Perspective Transform</strong><p id="16d5a19f-9cfa-8066-bbe3-f856ffbd9516" class="">Now we can apply perspective transform to un-warp the image to correct for angle when scanning/photographing the image.</p><p id="16d5a19f-9cfa-80a0-9016-cdae795dfb81" class=""><a href="https://docs.opencv.org/4.x/da/d6e/tutorial_py_geometric_transformations.html">https://docs.opencv.org/4.x/da/d6e/tutorial_py_geometric_transformations.html</a></p><figure class="block-color-teal callout" style="white-space:pre-wrap;display:flex" id="16d5a19f-9cfa-80e0-8ac9-e1c2549aec8f"><div style="font-size:1.5em"><span class="icon">💡</span></div><div style="width:100%"><p id="99ba8f69-3e91-43c0-8b93-a6b43f6cdce3" class="">Why is correcting for angle so important? This is because in the next stages, we will attempt to identify the row and column gridlines by plotting contour point frequency against the vertical and horizontal axes and use scipy signal processing peak detection algorithm to identify the gridlines. Too high warp will flatten and widen the peaks and reduce the effectiveness of the algorithm, especially for rows, as they are more numerous.</p></div></figure><p id="16d5a19f-9cfa-801b-9900-cd265c909532" class="">Presenting the final unwarped base image:</p><figure id="16d5a19f-9cfa-806e-9456-ec778b208ed3" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2017.png"><img style="width:528px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2017.png"/></a></figure></li></ol></details></li></ul><h2 id="16d5a19f-9cfa-80e2-b57b-d5d41a3a8850" class="">Stage 2 - Identifying Rows and Columns (Gridlines)</h2><p id="16d5a19f-9cfa-8044-ab15-efe7367878d3" class="">Remember those larger contours from Stage 1? Well, now we will plot the points that comprise them along the vertical and horzontal axes to get a histogram.</p><p id="16d5a19f-9cfa-80ca-b79d-c32b96dfbecd" class="">To recap, here are the larger contours:</p><figure id="16d5a19f-9cfa-8039-ba24-ea06636dd984" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2018.png"><img style="width:384px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2018.png"/></a></figure><p id="16d5a19f-9cfa-80a7-8ee6-d599503f349d" class="">And here are the plots:</p><p id="16d5a19f-9cfa-80fd-96f0-c051dcede1e7" class="">Columns:</p><figure id="16d5a19f-9cfa-8080-92ca-e688aecfd4b7" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2019.png"><img style="width:580px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2019.png"/></a></figure><p id="16d5a19f-9cfa-80e7-814f-f455ec01aee9" class="">Rows:</p><figure id="16d5a19f-9cfa-80ca-892b-e5768d2a2cad" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2020.png"><img style="width:580px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2020.png"/></a></figure><p id="16d5a19f-9cfa-80c7-82ec-d372454488a6" class="">Seeing this, I was incentivized to use the scipy signal processing library’s find_peaks function (<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.find_peaks.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.find_peaks.html</a>). </p><p id="16d5a19f-9cfa-80e4-b931-c828fb74f9ec" class="">I recommend reading the above documentation, as well as this useful answer on StackOverflow by BasJ for a quick overview <a href="https://stackoverflow.com/questions/1713335/peak-finding-algorithm-for-python-scipy/">https://stackoverflow.com/questions/1713335/peak-finding-algorithm-for-python-scipy/</a></p><p id="16d5a19f-9cfa-8073-bdbe-d7cfc86d7f4d" class="">We can specify a reasonable minimum distance between peaks based on whether we are looking for rows and columns as a ratio of the page width or height, in order to help the peak-detection algorithm reliable find the peaks that are so obvious to the human eye looking at the above plots.</p><p id="16d5a19f-9cfa-80c0-b9a0-c0efb165ff9a" class="">The ‘left_ips’ and ‘right_ips’ properties that are returned describes an individual peak’s width. For example if the column line was perfectly vertical, its width would be 1 and left_ips would be equal to right_ips. However in practice, the line would be at a slight angle, and wouldn’t even be perfectly straight (even with our un-warping efforts, since the initial image would have been folded, crumpled, scanner defects, etc., we cannot completely negate warping). Therefore the left_ips and right_ips are useful as we can use them to draw an approximate straight line that follows the angle of the column line. </p><p id="16d5a19f-9cfa-80b7-93e2-dfa2440f9f5c" class="">I have reproduced the gridline detection function below which the reader can skim through.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="16d5a19f-9cfa-8059-8526-f108ade8b0fa" class="code"><code class="language-Python">def get_table_lines(frequncies: list, image_shape, vertical: bool, min_ratio_of_highest_prominence: float = 0.25) -&gt; list:
+    larger_contours.append(contour)</code></pre><p id="16d5a19f-9cfa-80e5-834c-e3468bdbb2d0" class="">Below is the image with just the larger contours printed. Contours around most cells have been identified.</p><figure id="16d5a19f-9cfa-807e-b2ef-c9d0558b18e3" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2014.png"><img style="width:528px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2014.png"/></a></figure></li></ol><ol type="1" id="16d5a19f-9cfa-806e-8f08-e5fb14be9ae1" class="numbered-list" start="5"><li><strong>Create a mask from the points comprising the larger contours</strong><p id="16d5a19f-9cfa-806d-980c-fe48b9fceec0" class="">Dealing with the mask for the next step is easier, as we don’t have to deal with image noise.</p><figure id="16d5a19f-9cfa-80dc-b3e3-f824d7f5fa6e" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2015.png"><img style="width:528px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2015.png"/></a></figure></li></ol><ol type="1" id="16d5a19f-9cfa-80e5-b065-eec56afe37d3" class="numbered-list" start="6"><li><strong>Find the outer-most contour points from the mask</strong><p id="16d5a19f-9cfa-8036-9a71-e30358d230d3" class="">This is made easy by the ‘cv2.RETR_EXTERNAL’ argument. This is because the cv2.findContours method keeps track of contours as a hierarchy as much as possible (understanding that smaller contours can be inside larger contours).</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="16d5a19f-9cfa-8007-8484-faaeb403b8c8" class="code"><code class="language-Python">ext_contours,hierachy = cv2.findContours(larger_contours_image.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)</code></pre><figure id="16d5a19f-9cfa-80ab-b8c9-ef2d21207f94" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2016.png"><img style="width:432px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2016.png"/></a></figure></li></ol><ol type="1" id="16d5a19f-9cfa-8029-b715-d614f3e002fc" class="numbered-list" start="7"><li><strong>Find the 4 corners of the table</strong><p id="16d5a19f-9cfa-80c5-9020-d24a1caa5808" class="">As seen in the above image, this is fairly straightforward.</p></li></ol><ol type="1" id="16d5a19f-9cfa-800a-8409-ce31574e2784" class="numbered-list" start="8"><li><strong>Perspective Transform</strong><p id="16d5a19f-9cfa-8066-bbe3-f856ffbd9516" class="">Now we can apply perspective transform to un-warp the image to correct for angle when scanning/photographing the image.</p><p id="16d5a19f-9cfa-80a0-9016-cdae795dfb81" class=""><a href="https://docs.opencv.org/4.x/da/d6e/tutorial_py_geometric_transformations.html">https://docs.opencv.org/4.x/da/d6e/tutorial_py_geometric_transformations.html</a></p><figure class="block-color-teal callout" style="white-space:pre-wrap;display:flex" id="16d5a19f-9cfa-80e0-8ac9-e1c2549aec8f"><div style="font-size:1.5em"><span class="icon">💡</span></div><div style="width:100%"><p id="99ba8f69-3e91-43c0-8b93-a6b43f6cdce3" class="">Why is correcting for angle so important? This is because in the next stages, we will attempt to identify the row and column gridlines by plotting contour point frequency against the vertical and horizontal axes and use scipy signal processing peak detection algorithm to identify the gridlines. Too high warp will flatten and widen the peaks and reduce the effectiveness of the algorithm, especially for rows, as they are more numerous.</p></div></figure><p id="16d5a19f-9cfa-801b-9900-cd265c909532" class="">Presenting the final unwarped base image:</p><figure id="16d5a19f-9cfa-806e-9456-ec778b208ed3" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2017.png"><img style="width:528px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2017.png"/></a></figure></li></ol></details></li></ul><h2 id="16d5a19f-9cfa-80e2-b57b-d5d41a3a8850" class="">Stage 2 - Identifying Rows and Columns (Gridlines)</h2><p id="16d5a19f-9cfa-8044-ab15-efe7367878d3" class="">Remember those larger contours from Stage 1? Well, now we will plot the points that comprise them along the vertical and horzontal axes to get a histogram.</p><p id="16d5a19f-9cfa-80ca-b79d-c32b96dfbecd" class="">To recap, here are the larger contours:</p><figure id="16d5a19f-9cfa-8039-ba24-ea06636dd984" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2018.png"><img style="width:384px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2018.png"/></a></figure><p id="16d5a19f-9cfa-80a7-8ee6-d599503f349d" class="">And here are the plots:</p><p id="16d5a19f-9cfa-80fd-96f0-c051dcede1e7" class="">Columns:</p>
+	<figure id="16d5a19f-9cfa-8080-92ca-e688aecfd4b7" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2019.png"><img style="width:580px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2019.png"/></a></figure>
+	<p id="16d5a19f-9cfa-80e7-814f-f455ec01aee9" class="">Rows:</p><figure id="16d5a19f-9cfa-80ca-892b-e5768d2a2cad" class="image"><a href="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2020.png"><img style="width:580px" src="Challenges%20in%20Data%20Collection%20-%20An%20Experiment%20in%20E%2016d5a19f9cfa805ba81fdc438df24ba1/image%2020.png"/></a></figure><p id="16d5a19f-9cfa-80c7-82ec-d372454488a6" class="">Seeing this, I was incentivized to use the scipy signal processing library’s find_peaks function (<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.find_peaks.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.find_peaks.html</a>). </p><p id="16d5a19f-9cfa-80e4-b931-c828fb74f9ec" class="">I recommend reading the above documentation, as well as this useful answer on StackOverflow by BasJ for a quick overview <a href="https://stackoverflow.com/questions/1713335/peak-finding-algorithm-for-python-scipy/">https://stackoverflow.com/questions/1713335/peak-finding-algorithm-for-python-scipy/</a></p><p id="16d5a19f-9cfa-8073-bdbe-d7cfc86d7f4d" class="">We can specify a reasonable minimum distance between peaks based on whether we are looking for rows and columns as a ratio of the page width or height, in order to help the peak-detection algorithm reliable find the peaks that are so obvious to the human eye looking at the above plots.</p><p id="16d5a19f-9cfa-80c0-b9a0-c0efb165ff9a" class="">The ‘left_ips’ and ‘right_ips’ properties that are returned describes an individual peak’s width. For example if the column line was perfectly vertical, its width would be 1 and left_ips would be equal to right_ips. However in practice, the line would be at a slight angle, and wouldn’t even be perfectly straight (even with our un-warping efforts, since the initial image would have been folded, crumpled, scanner defects, etc., we cannot completely negate warping). Therefore the left_ips and right_ips are useful as we can use them to draw an approximate straight line that follows the angle of the column line. </p><p id="16d5a19f-9cfa-80b7-93e2-dfa2440f9f5c" class="">I have reproduced the gridline detection function below which the reader can skim through.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="16d5a19f-9cfa-8059-8526-f108ade8b0fa" class="code"><code class="language-Python">def get_table_lines(frequncies: list, image_shape, vertical: bool, min_ratio_of_highest_prominence: float = 0.25) -&gt; list:
     &quot;&quot;&quot;Uses scipy signal library peak detection to identify peaks and their width (the width is used because the lines may not be perfectly vertical or horizontal)
 
     Args:
